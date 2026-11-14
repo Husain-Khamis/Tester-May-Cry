@@ -1,30 +1,30 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  createSlot, deleteSlot, exportSlot, importSlot, passedCount, renameSlot, setActive, useSaves,
+  bestRank, createSlot, deleteSlot, exportSlot, importSlot, passedCount, renameSlot, setActive, useSaves,
 } from '../saves'
 
 const languages = [
   {
     id: 'go',
     name: 'Go',
+    tagline: 'Devil Hunter',
     description: 'Checkpoint questions for the Go programming language',
-    color: 'bg-cyan-500',
-    hover: 'hover:bg-cyan-600',
+    color: 'text-steel',
   },
   {
     id: 'js',
     name: 'JavaScript',
+    tagline: 'Son of Sparda',
     description: 'Checkpoint questions for the JavaScript programming language',
-    color: 'bg-yellow-400',
-    hover: 'hover:bg-yellow-500',
+    color: 'text-brimstone',
   },
   {
     id: 'rust',
     name: 'Rust',
+    tagline: 'Dante Must Die',
     description: 'Checkpoint questions for the Rust programming language',
-    color: 'bg-orange-500',
-    hover: 'hover:bg-orange-600',
+    color: 'text-ember',
   },
 ]
 
@@ -34,7 +34,7 @@ function Main() {
   const fileInput = useRef(null)
   const [error, setError] = useState('')
 
-  const btn = 'text-xs text-gray-300 hover:text-white underline-offset-2 hover:underline'
+  const btn = 'link-btn'
 
   function newGame() {
     const name = window.prompt('Name your save slot', `Slot ${saves.slots.length + 1}`)
@@ -59,30 +59,30 @@ function Main() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      <nav className="bg-gray-800 px-6 py-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold text-green-400">Solid Tester</h1>
+    <div className="min-h-screen bg-obsidian text-bone flex flex-col">
+      <nav className="bg-stone px-6 py-3 border-b border-brass/40">
+        <h1 className="font-display text-3xl text-brass leading-none">Tester May Cry</h1>
       </nav>
 
       <main className="flex flex-col items-center justify-center flex-1 gap-10 px-4">
         <div className="text-center">
-          <h2 className="text-4xl font-bold mb-3">Practice Checkpoints</h2>
-          <p className="text-gray-400 text-lg">Select a language to get started</p>
+          <h2 className="font-display text-6xl text-bone mb-3">Practice Checkpoints</h2>
+          <p className="text-mute text-lg italic">Select a language to get started</p>
         </div>
 
         <div className="w-full max-w-3xl">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-gray-400 uppercase tracking-widest">Save slots</p>
+            <p className="label">Save slots</p>
             <button
               onClick={() => fileInput.current.click()}
               disabled={saves.slots.length >= 3}
-              className="text-xs text-gray-300 hover:text-white disabled:opacity-40"
+              className="link-btn disabled:opacity-40"
             >
               Import
             </button>
             <input ref={fileInput} type="file" accept=".json,application/json" onChange={handleImport} className="hidden" />
           </div>
-          {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+          {error && <p className="text-crimson text-sm mb-3">{error}</p>}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[0, 1, 2].map((i) => {
               const slot = saves.slots[i]
@@ -91,7 +91,7 @@ function Main() {
                   <button
                     key={i}
                     onClick={newGame}
-                    className="border-2 border-dashed border-gray-700 hover:border-green-500 rounded-xl p-4 text-gray-400 hover:text-white transition-colors duration-150"
+                    className="border border-dashed border-brass/60 hover:bg-brass/10 p-4 font-heading tracking-wider text-mute hover:text-bone transition-colors duration-150"
                   >
                     New game
                   </button>
@@ -101,11 +101,15 @@ function Main() {
               return (
                 <div
                   key={slot.id}
-                  className={`bg-gray-800 rounded-xl p-4 border-2 ${active ? 'border-green-500' : 'border-gray-700'}`}
+                  className={`frame p-4 ${active ? 'outline outline-2 -outline-offset-4 outline-blood' : ''}`}
                 >
-                  <p className="font-bold truncate">{slot.name}</p>
-                  <p className="text-xs text-gray-400">{new Date(slot.updatedAt).toLocaleString()}</p>
-                  <p className="text-xs text-green-400 mb-3">{passedCount(slot)} passed</p>
+                  <p className="label">Slot {i + 1}</p>
+                  <p className="font-heading font-bold tracking-wider truncate">{slot.name}</p>
+                  <p className="text-sm text-mute">{new Date(slot.updatedAt).toLocaleString()}</p>
+                  <p className="text-brass mb-3">
+                    Missions cleared {passedCount(slot)}
+                    {bestRank(slot) && <span className="ml-2 font-display text-xl text-crimson" title="Best rank">{bestRank(slot)}</span>}
+                  </p>
                   <div className="flex flex-wrap gap-x-3 gap-y-1">
                     <button onClick={() => setActive(slot.id)} className={btn}>{active ? 'Active' : 'Continue'}</button>
                     <button
@@ -136,10 +140,11 @@ function Main() {
             <button
               key={lang.id}
               onClick={() => handleLanguageSelect(lang.id)}
-              className={`${lang.color} ${lang.hover} rounded-xl p-6 text-left transition-colors duration-200 cursor-pointer`}
+              className="frame p-6 text-left transition-shadow duration-200 cursor-pointer hover:shadow-[inset_0_0_24px_rgba(211,36,43,0.45)]"
             >
-              <h3 className="text-xl font-bold mb-2">{lang.name}</h3>
-              <p className="text-sm opacity-80">{lang.description}</p>
+              <h3 className={`font-heading font-bold tracking-wider text-xl ${lang.color}`}>{lang.name}</h3>
+              <p className={`italic mb-2 ${lang.color}`}>{lang.tagline}</p>
+              <p className="text-mute">{lang.description}</p>
             </button>
           ))}
         </div>

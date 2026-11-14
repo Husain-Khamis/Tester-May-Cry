@@ -42,17 +42,17 @@ function Questions() {
   }
 
   return (
-    <div className="h-screen bg-gray-900 text-white flex flex-col">
-      <nav className="bg-gray-800 px-6 py-4 border-b border-gray-700 flex items-center gap-4">
-        <Link to="/" title="Switch save slot" className="text-xl font-bold text-green-400">Solid Tester</Link>
-        <span className="text-gray-400 text-sm uppercase tracking-widest">{lang}</span>
+    <div className="h-screen bg-obsidian text-bone flex flex-col">
+      <nav className="bg-stone px-6 py-3 border-b border-brass/40 flex items-center gap-4">
+        <Link to="/" title="Switch save slot" className="font-display text-3xl text-brass leading-none">Tester May Cry</Link>
+        <span className="label">{lang}</span>
         {slot && (
-          <span className="ml-auto text-sm text-gray-400">
+          <span className="ml-auto text-sm text-mute">
             {slot.name}{' '}
             {saveError ? (
-              <span className="text-red-400">· {saveError}</span>
+              <span className="text-crimson">· {saveError}</span>
             ) : (
-              <span className="text-gray-600">· Saved {new Date(slot.updatedAt).toLocaleTimeString()}</span>
+              <span className="text-mute">· Saved {new Date(slot.updatedAt).toLocaleTimeString()}</span>
             )}
           </span>
         )}
@@ -79,8 +79,8 @@ function Questions() {
           ) : selectedQuestion ? (
             <QuestionView key={selectedQuestion.id} question={selectedQuestion} lang={lang} />
           ) : (
-            <main className="flex-1 flex items-center justify-center text-gray-500">
-              <p>Select a question from the sidebar to get started</p>
+            <main className="flex-1 flex items-center justify-center text-mute">
+              <p>Pick a mission from the sidebar</p>
             </main>
           )}
         </Panel>

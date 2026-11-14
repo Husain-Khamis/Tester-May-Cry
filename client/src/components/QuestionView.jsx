@@ -8,7 +8,8 @@ import CodeTabs from './CodeTabs'
 import LongRunDialog from './LongRunDialog'
 import { useRun } from '../useRun'
 import { extractUsage } from '../usage'
-import { getExercise, saveExercise } from '../saves'
+import RankReveal from './RankReveal'
+import { getExercise, recordTest, saveExercise } from '../saves'
 
 function QuestionView({ question, lang }) {
   const [loaded, setLoaded] = useState({ subject: null, markdown: '' })
@@ -19,6 +20,7 @@ function QuestionView({ question, lang }) {
   const [mainEdit, setMainEdit] = useState(initial.main)
   const [output, setOutput] = useState('')
   const [result, setResult] = useState(null)
+  const [rank, setRank] = useState(null)
   const [busy, setBusy] = useState(false)
   const run = useRun()
 
@@ -67,6 +69,7 @@ function QuestionView({ question, lang }) {
   async function exec(fn) {
     setBusy(true)
     setResult(null)
+    setRank(null)
     setOutput('')
     try {
       await run.track(fn)
@@ -83,7 +86,7 @@ function QuestionView({ question, lang }) {
     exec(async (signal) => {
       const data = await testCode(lang, question.name, code, signal)
       if (!data.stopped) setResult(data)
-      if (data.passed) saveExercise(lang, question.name, { passed: true })
+      if (!data.stopped) setRank(recordTest(lang, question.name, data.passed))
       setOutput(data.output || (data.passed ? 'All tests passed' : 'No output'))
     })
 
@@ -94,26 +97,26 @@ function QuestionView({ question, lang }) {
       id="practice"
       description={
         <div className="overflow-y-auto h-full">
-          <div className="p-4 border-b border-gray-700">
+          <div className="p-4 border-b border-brass/40">
             <div className="flex items-center justify-between mb-3">
-              <h1 className="text-lg font-bold text-white">{question.name}</h1>
-              <span className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                Level {question.group}
+              <h1 className="font-mono font-bold text-xl text-bone">{question.name}</h1>
+              <span className="border border-brass/60 text-brass font-heading text-xs tracking-wider px-3 py-1">
+                Mission {question.group}
               </span>
             </div>
 
             <div className="flex gap-4 flex-wrap">
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Difficulty</p>
-                <p className="text-white text-sm font-medium">{question.difficulty}</p>
+                <p className="label mb-1">Difficulty</p>
+                <p className="text-bone">{question.difficulty}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Expected Files</p>
+                <p className="label mb-1">Expected Files</p>
                 <div className="flex gap-2 flex-wrap">
                   {question.expectedFiles.map((file) => (
                     <span
                       key={file}
-                      className="bg-gray-700 text-green-400 text-xs px-2 py-1 rounded font-mono"
+                      className="bg-obsidian border border-brass/40 text-brass text-xs px-2 py-1 font-mono"
                     >
                       {file}
                     </span>
@@ -126,9 +129,9 @@ function QuestionView({ question, lang }) {
 
           <div className="p-4">
             {loading ? (
-              <p className="text-gray-500 text-sm">Loading question...</p>
+              <p className="text-mute">Loading question...</p>
             ) : (
-              <div className="prose prose-invert max-w-none text-sm">
+              <div className="prose prose-dmc">
                 <ReactMarkdown>{markdown}</ReactMarkdown>
               </div>
             )}
@@ -136,21 +139,21 @@ function QuestionView({ question, lang }) {
         </div>
       }
       toolbar={
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-700">
-          <p className="text-xs text-gray-400 uppercase tracking-widest">Solution</p>
+        <div className="flex items-center justify-between px-4 py-2 bg-stone border-b border-brass/40">
+          <p className="label">Solution</p>
           <div className="flex items-center gap-2">
-            {busy && <span className="text-xs text-gray-400">Running… (the first test per language downloads the grader image and may take a few minutes)</span>}
+            {busy && <span className="text-xs text-mute">Running…</span>}
             <button
               onClick={runCode}
               disabled={busy}
-              className="bg-gray-600 hover:bg-gray-500 disabled:opacity-50 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors duration-150"
+              className="btn btn-quiet"
             >
               Run
             </button>
             <button
               onClick={runTests}
               disabled={busy}
-              className="bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors duration-150"
+              className="btn btn-primary"
             >
               Test
             </button>
@@ -170,16 +173,19 @@ function QuestionView({ question, lang }) {
       }
       output={
         <>
-          <div className="px-4 py-2 border-b border-gray-700 flex items-center gap-3">
-            <p className="text-xs text-gray-400 uppercase tracking-widest">Output</p>
+          <div className="px-4 py-2 border-b border-brass/40 flex items-center gap-3">
+            <p className="label">Output</p>
             <ResultBadge result={result} />
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 font-mono text-sm text-green-400">
-            {output ? (
-              <pre className="whitespace-pre-wrap break-words">{output}</pre>
-            ) : (
-              <p className="text-gray-600">Run your code to see output here</p>
-            )}
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 flex gap-4 items-start">
+            <div className="flex-1 min-w-0 font-mono text-sm text-bone">
+              {output ? (
+                <pre className="whitespace-pre-wrap break-words">{output}</pre>
+              ) : (
+                <p className="text-mute">Run your code to see output here</p>
+              )}
+            </div>
+            {rank && <RankReveal rank={rank} />}
           </div>
         </>
       }

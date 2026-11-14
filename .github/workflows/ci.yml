@@ -76,7 +76,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/husain-khamis/solid-tester
+          images: ghcr.io/husain-khamis/tester-may-cry
           tags: |
             type=raw,value=latest
             type=sha

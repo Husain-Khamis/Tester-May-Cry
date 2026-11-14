@@ -99,9 +99,9 @@ function MockExam({ questions, lang }) {
 
   if (timeUp) {
     return (
-      <div className="flex-1 flex items-center justify-center flex-col gap-4 text-white">
-        <h2 className="text-4xl font-bold text-red-500">Time is Up</h2>
-        <p className="text-gray-400">Your mock exam session has ended</p>
+      <div className="flex-1 flex items-center justify-center flex-col gap-4 text-bone">
+        <h2 className="font-display text-5xl text-crimson">Time is Up</h2>
+        <p className="text-mute">Your Bloody Palace run has ended</p>
       </div>
     )
   }
@@ -109,26 +109,26 @@ function MockExam({ questions, lang }) {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <LongRunDialog startedAt={run.startedAt} onStop={run.stop} onKeep={run.keepWaiting} />
-      <div className="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center gap-3">
-        <span className="text-xs text-gray-400 uppercase tracking-widest mr-2">Mock Exam</span>
+      <div className="bg-stone border-b border-brass/40 px-4 py-2 flex items-center gap-3">
+        <span className="font-display text-2xl text-brass mr-2">Bloody Palace</span>
 
         <div className="flex gap-2 flex-1 flex-wrap">
           {questions.map((item, index) => (
             <button
               key={index}
               onClick={() => setActiveIndex(index)}
-              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors duration-150 ${
+              className={`font-heading text-xs tracking-wider px-3 py-1.5 border border-brass/60 transition-colors duration-150 ${
                 activeIndex === index
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-blood text-bone'
+                  : 'bg-stone text-bone hover:bg-brass/20'
               }`}
             >
-              Level {item.group}{results[index]?.passed ? ' ✓' : ''}
+              Mission {item.group}{results[index]?.passed ? ' ✓' : ''}
             </button>
           ))}
         </div>
 
-        <span className={`font-mono text-sm font-bold ml-auto ${timeLeft < 600 ? 'text-red-400' : 'text-green-400'}`}>
+        <span className={`font-mono text-sm font-bold ml-auto ${timeLeft < 600 ? 'text-crimson' : 'text-brass'}`}>
           ⏱ {formatTime(timeLeft)}
         </span>
       </div>
@@ -138,26 +138,26 @@ function MockExam({ questions, lang }) {
         id="mock"
         description={
           <div className="overflow-y-auto h-full">
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-brass/40">
               <div className="flex items-center justify-between mb-3">
-                <h1 className="text-lg font-bold text-white">{activeQuestion.name}</h1>
-                <span className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  Level {questions[activeIndex].group}
+                <h1 className="font-mono font-bold text-xl text-bone">{activeQuestion.name}</h1>
+                <span className="border border-brass/60 text-brass font-heading text-xs tracking-wider px-3 py-1">
+                  Mission {questions[activeIndex].group}
                 </span>
               </div>
 
               <div className="flex gap-4 flex-wrap">
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Difficulty</p>
-                  <p className="text-white text-sm font-medium">{activeQuestion.difficulty}</p>
+                  <p className="label mb-1">Difficulty</p>
+                  <p className="text-bone">{activeQuestion.difficulty}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Expected Files</p>
+                  <p className="label mb-1">Expected Files</p>
                   <div className="flex gap-2 flex-wrap">
                     {activeQuestion.expectedFiles.map((file) => (
                       <span
                         key={file}
-                        className="bg-gray-700 text-green-400 text-xs px-2 py-1 rounded font-mono"
+                        className="bg-obsidian border border-brass/40 text-brass text-xs px-2 py-1 font-mono"
                       >
                         {file}
                       </span>
@@ -170,9 +170,9 @@ function MockExam({ questions, lang }) {
 
             <div className="p-4">
               {loadingMarkdown ? (
-                <p className="text-gray-500 text-sm">Loading question...</p>
+                <p className="text-mute">Loading question...</p>
               ) : (
-                <div className="prose prose-invert max-w-none text-sm">
+                <div className="prose prose-dmc">
                   <ReactMarkdown>{markdown}</ReactMarkdown>
                 </div>
               )}
@@ -180,21 +180,21 @@ function MockExam({ questions, lang }) {
           </div>
         }
         toolbar={
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-700">
-            <p className="text-xs text-gray-400 uppercase tracking-widest">Solution</p>
+          <div className="flex items-center justify-between px-4 py-2 bg-stone border-b border-brass/40">
+            <p className="label">Solution</p>
             <div className="flex items-center gap-2">
-              {busy && <span className="text-xs text-gray-400">Running… (the first test per language downloads the grader image and may take a few minutes)</span>}
+              {busy && <span className="text-xs text-mute">Running…</span>}
               <button
                 onClick={runCode}
                 disabled={busy}
-                className="bg-gray-600 hover:bg-gray-500 disabled:opacity-50 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors duration-150"
+                className="btn btn-quiet"
               >
                 Run
               </button>
               <button
                 onClick={runTests}
                 disabled={busy}
-                className="bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors duration-150"
+                className="btn btn-primary"
               >
                 Test
               </button>
@@ -215,15 +215,15 @@ function MockExam({ questions, lang }) {
         }
         output={
           <>
-            <div className="px-4 py-2 border-b border-gray-700 flex items-center gap-3">
-              <p className="text-xs text-gray-400 uppercase tracking-widest">Output</p>
+            <div className="px-4 py-2 border-b border-brass/40 flex items-center gap-3">
+              <p className="label">Output</p>
               <ResultBadge result={results[activeIndex]} />
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 font-mono text-sm text-green-400">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 font-mono text-sm text-bone">
               {outputs[activeIndex] ? (
                 <pre className="whitespace-pre-wrap break-words">{outputs[activeIndex]}</pre>
               ) : (
-                <p className="text-gray-600">Run your code to see output here</p>
+                <p className="text-mute">Run your code to see output here</p>
               )}
             </div>
           </>

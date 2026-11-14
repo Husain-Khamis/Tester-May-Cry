@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { RANKS, rankFor } from './rank'
 
 const KEY = 'solid-tester:saves'
 const MAX_SLOTS = 3
@@ -85,6 +86,23 @@ export function saveExercise(lang, name, patch) {
 export const passedCount = (slot) =>
   Object.values(slot.data).reduce((n, ex) => n + Object.values(ex).filter((e) => e.passed).length, 0)
 
+// Records a graded Test. Rank is fixed by the fails before the first pass; returns the rank to show on a pass.
+export function recordTest(lang, name, passed) {
+  const cur = getExercise(lang, name)
+  if (!passed) {
+    if (!cur?.passed) saveExercise(lang, name, { fails: Math.min(999, (cur?.fails ?? 0) + 1) })
+    return null
+  }
+  const earned = rankFor(cur?.fails ?? 0)
+  const rank = cur?.rank && RANKS.indexOf(cur.rank) > RANKS.indexOf(earned) ? cur.rank : earned
+  saveExercise(lang, name, { passed: true, rank })
+  return rank
+}
+
+export const bestRank = (slot) =>
+  Object.values(slot.data).flatMap((ex) => Object.values(ex).map((e) => e.rank)).reduce(
+    (best, r) => (RANKS.indexOf(r) > RANKS.indexOf(best) ? r : best), null)
+
 export function exportSlot(id) {
   const slot = state.slots.find((s) => s.id === id)
   const blob = new Blob([JSON.stringify({ name: slot.name, data: slot.data }, null, 2)], { type: 'application/json' })
@@ -115,6 +133,14 @@ function cleanData(data) {
       if (e.passed !== undefined) {
         if (typeof e.passed !== 'boolean') bad('passed must be a boolean')
         out.passed = e.passed
+      }
+      if (e.fails !== undefined) {
+        if (!Number.isInteger(e.fails) || e.fails < 0 || e.fails > 999) bad('fails must be an integer from 0 to 999')
+        out.fails = e.fails
+      }
+      if (e.rank !== undefined) {
+        if (!RANKS.includes(e.rank)) bad('rank must be one of D, C, B, A, S, SS, SSS')
+        out.rank = e.rank
       }
       return [name.slice(0, 200), out]
     }))]

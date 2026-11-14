@@ -17,9 +17,9 @@ async function openGcd(page) {
   await page.getByRole('button', { name: /^Go/ }).click()
   await expect(page).toHaveURL(/\/questions\?lang=go/)
 
-  // exercises are grouped under collapsible levels; expand until gcd shows
+  // exercises are grouped under collapsible missions; expand until gcd shows
   const gcd = page.getByRole('button', { name: 'gcd', exact: true })
-  const levels = page.getByRole('button', { name: /^Level \d+/ })
+  const levels = page.getByRole('button', { name: /^Mission \d+/ })
   await expect(levels.first()).toBeVisible({ timeout: 60_000 })
   for (const level of await levels.all()) {
     if (await gcd.isVisible()) break
@@ -36,11 +36,12 @@ test('go gcd: pass and fail', async ({ page }) => {
 
   await setValue(page, fixture('gcd.go'))
   await page.getByRole('button', { name: 'Test', exact: true }).click()
-  await expect(page.getByText('Passed', { exact: true })).toBeVisible({ timeout: 150_000 })
+  await expect(page.getByText('Mission Clear', { exact: true })).toBeVisible({ timeout: 150_000 })
+  await expect(page.getByText('Stylish!!!', { exact: true })).toBeVisible()
 
   await setValue(page, fixture('gcd_bad.go'))
   await page.getByRole('button', { name: 'Test', exact: true }).click()
-  await expect(page.getByText('Failed', { exact: true })).toBeVisible({ timeout: 150_000 })
+  await expect(page.getByText('Mission Failed', { exact: true })).toBeVisible({ timeout: 150_000 })
 })
 
 
@@ -62,8 +63,8 @@ test('output panel is resizable', async ({ page }) => {
 
 async function openExercise(page, lang, name) {
   await page.getByRole('button', { name: lang }).click()
-  const ex = page.getByRole('button', { name: new RegExp(`^${name}\\s*✓?$`) })
-  const levels = page.getByRole('button', { name: /^Level \d+/ })
+  const ex = page.getByRole('button', { name: new RegExp(`^${name}\\s*(✓|SSS|SS|S|A|B|C|D)?$`) })
+  const levels = page.getByRole('button', { name: /^Mission \d+/ })
   await expect(levels.first()).toBeVisible({ timeout: 60_000 })
   for (const level of await levels.all()) {
     if (await ex.isVisible()) break
@@ -99,15 +100,29 @@ test('save slot: autosave, passed mark, export', async ({ page }) => {
   await expect.poll(() => getValue(page)).toBe(fixture('gcd.go'))
 
   await page.getByRole('button', { name: 'Test', exact: true }).click()
-  await expect(page.getByText('Passed', { exact: true })).toBeVisible({ timeout: 150_000 })
-  await expect(page.getByRole('button', { name: /^gcd\s*✓$/ })).toBeVisible()
+  await expect(page.getByText('Mission Clear', { exact: true })).toBeVisible({ timeout: 150_000 })
+  await expect(page.getByRole('button', { name: /^gcd\s*SSS$/ })).toBeVisible()
 
-  await page.getByRole('link', { name: 'Solid Tester' }).click()
+  await page.getByRole('link', { name: 'Tester May Cry' }).click()
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Export' }).click(),
   ])
   expect(download.suggestedFilename()).toBe('solid-tester-E2E.json')
+})
+
+test('js factorial: fail then pass ranks SS', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+  await openExercise(page, /^JavaScript/, 'js-factorial')
+  await setValue(page, fixture('factorial_bad.js'))
+  await page.getByRole('button', { name: 'Test', exact: true }).click()
+  await expect(page.getByText('Mission Failed', { exact: true })).toBeVisible({ timeout: 150_000 })
+  await setValue(page, fixture('factorial.js'))
+  await page.getByRole('button', { name: 'Test', exact: true }).click()
+  await expect(page.getByText('Showtime!!', { exact: true })).toBeVisible({ timeout: 150_000 })
+  await expect(page.getByRole('button', { name: /^js-factorial\s*SS$/ })).toBeVisible()
 })
 
 test('go onlya (program exercise): run works without a usage tab', async ({ page }) => {

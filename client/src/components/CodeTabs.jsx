@@ -7,17 +7,37 @@ const LANGUAGE_MAP = {
   rust: 'rust'
 }
 
+function defineTheme(monaco) {
+  monaco.editor.defineTheme('dmc', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'keyword', foreground: 'D3242B' },
+      { token: 'string', foreground: 'B08D57' },
+      { token: 'comment', foreground: '7A6F68', fontStyle: 'italic' },
+    ],
+    colors: {
+      'editor.background': '#0C0809',
+      'editor.foreground': '#E6D9BF',
+      'editorCursor.foreground': '#D3242B',
+      'editorLineNumber.foreground': '#7A6F68',
+      'editor.selectionBackground': '#8E0F1466',
+      'editor.lineHighlightBackground': '#1A1314',
+    },
+  })
+}
+
 // Solution editor; with `main` set, a second "main (usage)" tab holds the program Run executes alongside it.
 function CodeTabs({ lang, id, file, code, onCode, main, onMain }) {
   const [tab, setTab] = useState('code')
   const showMain = main != null && tab === 'main'
   const tabClass = (active) =>
-    `px-3 py-1 text-xs font-mono ${active ? 'bg-gray-800 text-green-400' : 'text-gray-400 hover:text-white'}`
+    `px-3 py-1 text-xs font-mono ${active ? 'bg-blood text-bone' : 'text-mute hover:text-bone'}`
 
   return (
     <div className="h-full flex flex-col">
       {main != null && (
-        <div className="flex bg-gray-900 border-b border-gray-700">
+        <div className="flex bg-obsidian border-b border-brass/40">
           <button onClick={() => setTab('code')} className={tabClass(tab === 'code')}>{file}</button>
           <button onClick={() => setTab('main')} className={tabClass(tab === 'main')}>main (usage)</button>
         </div>
@@ -26,7 +46,8 @@ function CodeTabs({ lang, id, file, code, onCode, main, onMain }) {
         <Editor
           height="100%"
           language={LANGUAGE_MAP[lang]}
-          theme="vs-dark"
+          theme="dmc"
+          beforeMount={defineTheme}
           path={`${id}/${showMain ? 'main' : file}`}
           value={showMain ? main : code}
           onChange={(value) => (showMain ? onMain : onCode)(value ?? '')}

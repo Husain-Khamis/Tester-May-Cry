@@ -1,13 +1,11 @@
 function ResultBadge({ result }) {
   if (!result) return null
   const [label, color] = result.timedOut
-    ? ['Timed out', 'bg-amber-500']
+    ? ['Time Up', 'text-brimstone']
     : result.passed
-      ? ['Passed', 'bg-green-500']
-      : ['Failed', 'bg-red-500']
-  return (
-    <span className={`${color} text-white text-xs font-semibold px-3 py-1 rounded-full`}>{label}</span>
-  )
+      ? ['Mission Clear', 'text-brass']
+      : ['Mission Failed', 'text-crimson']
+  return <span className={`${color} font-display text-2xl leading-none`}>{label}</span>
 }
 
 export default ResultBadge

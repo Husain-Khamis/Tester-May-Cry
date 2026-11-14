@@ -8,7 +8,7 @@ function Workspace({ id, description, toolbar, editor, output }) {
 
   return (
     <Group orientation="horizontal" className="flex-1 overflow-hidden" {...outer}>
-      <Panel id="description" defaultSize="35%" minSize="20%" className="bg-gray-800 flex flex-col">
+      <Panel id="description" defaultSize="35%" minSize="20%" className="frame flex flex-col">
         {description}
       </Panel>
       <ResizeHandle aria-label="Resize description" />
@@ -19,7 +19,7 @@ function Workspace({ id, description, toolbar, editor, output }) {
             <div className="flex-1 min-h-0">{editor}</div>
           </Panel>
           <ResizeHandle vertical aria-label="Resize output" data-testid="output-handle" />
-          <Panel id="output" defaultSize="30%" minSize="10%" className="bg-gray-950 flex flex-col" data-testid="output-panel">
+          <Panel id="output" defaultSize="30%" minSize="10%" className="frame flex flex-col" data-testid="output-panel">
             {output}
           </Panel>
         </Group>

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { activeSlot, useSaves } from '../saves'
 
 const LANGUAGES = [
-  { id: 'go', name: 'Go', color: 'text-cyan-400' },
-  { id: 'js', name: 'JavaScript', color: 'text-yellow-400' },
-  { id: 'rust', name: 'Rust', color: 'text-orange-400' },
+  { id: 'go', name: 'Go', tagline: 'Devil Hunter', color: 'text-steel' },
+  { id: 'js', name: 'JavaScript', tagline: 'Son of Sparda', color: 'text-brimstone' },
+  { id: 'rust', name: 'Rust', tagline: 'Dante Must Die', color: 'text-ember' },
 ]
 
 function groupByLevel(questions) {
@@ -63,46 +63,47 @@ function Sidebar({
   const grouped = groupByLevel(questions)
 
   return (
-    <aside className="h-full bg-gray-800 border-r border-gray-700 flex flex-col overflow-y-auto">
-      <div className="p-4 border-b border-gray-700">
-        <p className="text-xs text-gray-400 uppercase tracking-widest mb-3">Language</p>
+    <aside className="h-full frame flex flex-col overflow-y-auto">
+      <div className="p-4 border-b border-brass/40">
+        <p className="label mb-3">Language</p>
         <div className="flex flex-col gap-1">
           {LANGUAGES.map((l) => (
             <button
               key={l.id}
               onClick={() => l.id !== lang && onLanguageChange(l.id)}
-              className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+              className={`text-left px-3 py-2 font-heading font-bold tracking-wider text-sm border transition-colors duration-150 ${
                 l.id === lang
-                  ? 'bg-gray-700 ' + l.color
-                  : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-obsidian border-brass/60 ' + l.color
+                  : 'border-transparent text-mute hover:bg-brass/20 hover:text-bone'
               }`}
             >
               {l.name}
+              <span className="block font-body italic font-normal tracking-normal text-sm">{l.tagline}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-4 border-b border-brass/40">
         <button
           onClick={handleMockExam}
-          className="w-full bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors duration-150"
+          className="btn btn-primary w-full py-2"
         >
-          Mock Exam
+          Bloody Palace
         </button>
       </div>
 
       <div className="p-4 flex flex-col gap-2 overflow-y-auto">
         {loading ? (
-          <p className="text-gray-500 text-sm">Loading questions...</p>
+          <p className="text-mute">Loading questions...</p>
         ) : (
           Object.entries(grouped).map(([group, qs]) => (
             <div key={group}>
               <button
                 onClick={() => toggleGroup(group)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-gray-400 uppercase tracking-widest hover:bg-gray-700 transition-colors duration-150"
+                className="w-full flex items-center justify-between px-3 py-2 label hover:bg-brass/20 transition-colors duration-150"
               >
-                <span>Level {group}</span>
+                <span>Mission {group}</span>
                 <span>{openGroups[group] ? '▲' : '▼'}</span>
               </button>
 
@@ -112,13 +113,17 @@ function Sidebar({
                     <button
                       key={q.id}
                       onClick={() => onQuestionSelect(q)}
-                      className={`text-left px-3 py-2 rounded-lg text-sm transition-colors duration-150 ${
+                      className={`text-left px-3 py-2 text-sm font-mono transition-colors duration-150 ${
                         selectedQuestion?.id === q.id
-                          ? 'bg-green-500 text-white'
-                          : 'text-gray-300 hover:bg-gray-700'
+                          ? 'bg-blood text-bone'
+                          : 'text-bone hover:bg-brass/20'
                       }`}
                     >
-                      {q.name}{passed[q.name]?.passed && <span className={`${selectedQuestion?.id === q.id ? 'text-white' : 'text-green-400'} ml-2`} title="Passed">✓</span>}
+                      {q.name}{passed[q.name]?.passed && (
+                        <span className={`${selectedQuestion?.id === q.id ? 'text-bone' : 'text-crimson'} font-display text-base ml-2`} title={passed[q.name].rank ? `Rank ${passed[q.name].rank}` : 'Mission Clear'}>
+                          {passed[q.name].rank ?? '✓'}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>

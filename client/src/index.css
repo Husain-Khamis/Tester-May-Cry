@@ -1,2 +1,123 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Devil May Cry 3 palette and type; no official art or fonts */
+@theme {
+  --color-obsidian: #0c0809;
+  --color-stone: #1a1314;
+  --color-blood: #8e0f14;
+  --color-crimson: #d3242b;
+  --color-bone: #e6d9bf;
+  --color-brass: #b08d57;
+  --color-ash: #7a6f68;
+  --color-mute: #b3a890; /* muted text that still clears 7:1 on stone */
+  --color-steel: #6fa8c7;
+  --color-brimstone: #d9b44a;
+  --color-ember: #c8572d;
+  --font-display: "Pirata One", "UnifrakturCook", Georgia, serif;
+  --font-heading: "Cinzel", "Trajan Pro", Georgia, serif;
+  --font-body: "EB Garamond", Garamond, Georgia, serif;
+}
+
+html {
+  background: var(--color-obsidian);
+  color: var(--color-bone);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-crimson);
+  outline-offset: 2px;
+}
+.monaco-editor :focus-visible {
+  outline: none;
+}
+
+@layer components {
+  .btn {
+    @apply font-heading font-bold tracking-wider text-sm px-4 py-1.5 border border-brass/60 text-bone transition-colors duration-150 disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-blood enabled:hover:bg-crimson;
+  }
+  .btn-quiet {
+    @apply bg-stone enabled:hover:bg-brass/20;
+  }
+  .label {
+    @apply font-heading text-xs tracking-widest text-brass;
+  }
+  .link-btn {
+    @apply font-heading text-xs tracking-wider text-mute hover:text-bone underline-offset-4 hover:underline;
+  }
+}
+
+/* Stone panel with brass inner border and diamond corner ornaments */
+.frame {
+  position: relative;
+  background: var(--color-stone);
+  border: 1px solid color-mix(in srgb, var(--color-brass) 55%, transparent);
+}
+.frame::before,
+.frame::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--color-brass);
+  transform: rotate(45deg);
+  pointer-events: none;
+  z-index: 1;
+}
+.frame::before { top: 2px; left: 2px; }
+.frame::after { bottom: 2px; right: 2px; }
+
+.prose-dmc {
+  max-width: 70ch;
+  font-size: 17px;
+  --tw-prose-body: var(--color-bone);
+  --tw-prose-headings: var(--color-bone);
+  --tw-prose-lead: var(--color-bone);
+  --tw-prose-links: var(--color-brass);
+  --tw-prose-bold: var(--color-bone);
+  --tw-prose-counters: var(--color-brass);
+  --tw-prose-bullets: var(--color-brass);
+  --tw-prose-hr: color-mix(in srgb, var(--color-brass) 50%, transparent);
+  --tw-prose-quotes: var(--color-mute);
+  --tw-prose-quote-borders: var(--color-blood);
+  --tw-prose-captions: var(--color-mute);
+  --tw-prose-code: var(--color-bone);
+  --tw-prose-pre-code: var(--color-bone);
+  --tw-prose-pre-bg: var(--color-obsidian);
+  --tw-prose-th-borders: var(--color-brass);
+  --tw-prose-td-borders: color-mix(in srgb, var(--color-brass) 30%, transparent);
+}
+.prose-dmc :is(h1, h2, h3, h4) {
+  font-family: var(--font-heading);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-brass) 50%, transparent);
+  padding-bottom: 0.25em;
+}
+.prose-dmc pre {
+  border: 1px solid color-mix(in srgb, var(--color-brass) 35%, transparent);
+  border-radius: 0;
+}
+.prose-dmc :not(pre) > code {
+  background: var(--color-obsidian);
+  padding: 0.1em 0.35em;
+}
+/* typography plugin draws literal backticks around inline code; the chip already marks it */
+.prose-dmc :not(pre) > code::before,
+.prose-dmc :not(pre) > code::after {
+  content: none;
+}
+
+/* The one bold motion: style rank slam-in */
+@media (prefers-reduced-motion: no-preference) {
+  .rank-slam { animation: rank-slam 300ms ease-out both; }
+}
+@keyframes rank-slam {
+  from { transform: scale(1.4); opacity: 0; text-shadow: 0 0 24px var(--color-crimson); }
+  to { transform: scale(1); opacity: 1; }
+}
