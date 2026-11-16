@@ -75,9 +75,9 @@ function Questions() {
         <ResizeHandle aria-label="Resize sidebar" />
         <Panel id="content" minSize="30%" className="flex flex-col">
           {isMockExam ? (
-            <MockExam questions={mockExamQuestions} lang={lang} />
+            <MockExam key={mockExamQuestions.map((m) => m.question.path).join()} questions={mockExamQuestions} lang={lang} />
           ) : selectedQuestion ? (
-            <QuestionView key={selectedQuestion.id} question={selectedQuestion} lang={lang} />
+            <QuestionView key={selectedQuestion.path} question={selectedQuestion} lang={lang} />
           ) : (
             <main className="flex-1 flex items-center justify-center text-mute">
               <p>Pick a mission from the sidebar</p>

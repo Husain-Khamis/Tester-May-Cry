@@ -1,29 +1,29 @@
 export const RUN_LIMIT_MS = 60_000
 const STOPPED_BY_USER = '[stopped by user]'
 
-async function post(path, lang, name, code, main, signal) {
+async function post(route, lang, path, code, main, signal) {
   try {
-    return await postJson(path, lang, name, code, main, signal)
+    return await postJson(route, lang, path, code, main, signal)
   } catch (err) {
     if (err.name === 'AbortError') return { stopped: true, passed: false, output: STOPPED_BY_USER }
     throw err
   }
 }
 
-async function postJson(path, lang, name, code, main, signal) {
-  const res = await fetch(`/api/questions/${path}`, {
+async function postJson(route, lang, path, code, main, signal) {
+  const res = await fetch(`/api/questions/${route}`, {
     method: 'POST',
     signal,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ lang, name, code, ...(main != null && { main }) })
+    body: JSON.stringify({ lang, path, code, ...(main != null && { main }) })
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`)
   return data
 }
 
-export const runOnServer = (lang, name, code, main, signal) => post('run', lang, name, code, main, signal)
-export const testCode = (lang, name, code, signal) => post('test', lang, name, code, undefined, signal)
+export const runOnServer = (lang, path, code, main, signal) => post('run', lang, path, code, main, signal)
+export const testCode = (lang, path, code, signal) => post('test', lang, path, code, undefined, signal)
 
 // Runs inside the worker (serialized via toString, so it must stay self-contained)
 function workerBody() {
@@ -113,8 +113,8 @@ function runJs(src, signal) {
 }
 
 // JS runs in the browser (code + usage program); go/rust go to the server. Returns { output, timedOut?, stopped? }.
-export async function runAny(lang, name, code, main, signal) {
+export async function runAny(lang, path, code, main, signal) {
   if (lang === 'js') return runJs(main ? `${code}\n${main}` : code, signal)
-  const data = await runOnServer(lang, name, code, main, signal)
+  const data = await runOnServer(lang, path, code, main, signal)
   return { ...data, output: data.output || 'No output' }
 }

@@ -8,6 +8,13 @@ const getValue = (page) => page.evaluate(() => window.monaco.editor.getModels()[
 const setValue = (page, code) =>
   page.evaluate((c) => window.monaco.editor.getModels()[0].setValue(c), code)
 
+// exercises sit under collapsible checkpoint > mission groups; open them in order until `target` shows
+async function expandUntil(page, target) {
+  const closed = page.getByRole('button', { name: /▼$/ })
+  await expect(closed.first()).toBeVisible({ timeout: 60_000 })
+  while (!(await target.isVisible()) && (await closed.count())) await closed.first().click()
+}
+
 async function openGcd(page) {
   await page.goto('/')
   for (const name of ['Go', 'JavaScript', 'Rust']) {
@@ -17,15 +24,8 @@ async function openGcd(page) {
   await page.getByRole('button', { name: /^Go/ }).click()
   await expect(page).toHaveURL(/\/questions\?lang=go/)
 
-  // exercises are grouped under collapsible missions; expand until gcd shows
-  const gcd = page.getByRole('button', { name: 'gcd', exact: true })
-  const levels = page.getByRole('button', { name: /^Mission \d+/ })
-  await expect(levels.first()).toBeVisible({ timeout: 60_000 })
-  for (const level of await levels.all()) {
-    if (await gcd.isVisible()) break
-    await level.click()
-  }
-  await gcd.click()
+  await expandUntil(page, page.getByRole('button', { name: 'gcd', exact: true }).first())
+  await page.getByRole('button', { name: 'gcd', exact: true }).first().click()
 
   await page.waitForSelector('.monaco-editor')
 }
@@ -64,13 +64,8 @@ test('output panel is resizable', async ({ page }) => {
 async function openExercise(page, lang, name) {
   await page.getByRole('button', { name: lang }).click()
   const ex = page.getByRole('button', { name: new RegExp(`^${name}\\s*(✓|SSS|SS|S|A|B|C|D)?$`) })
-  const levels = page.getByRole('button', { name: /^Mission \d+/ })
-  await expect(levels.first()).toBeVisible({ timeout: 60_000 })
-  for (const level of await levels.all()) {
-    if (await ex.isVisible()) break
-    await level.click()
-  }
-  await ex.click()
+  await expandUntil(page, ex.first())
+  await ex.first().click()
   await page.waitForSelector('.monaco-editor')
 }
 
@@ -163,13 +158,14 @@ test('js infinite loop: dialog appears and Stop kills the run', async ({ page })
 })
 
 test('go infinite loop: Stop removes the grader container', async ({ page }) => {
+  const graders = () => execFileSync('docker', ['ps', '-q', '--filter', 'label=solid-tester-grader']).toString().split('\n').filter(Boolean)
+  const before = new Set(graders())
   await openGcd(page)
   await setValue(page, fixture('gcd_loop.go'))
   await page.getByRole('button', { name: 'Test', exact: true }).click()
   await expectStoppableDialog(page, 'Test')
-  await expect
-    .poll(() => execFileSync('docker', ['ps', '-q', '--filter', 'label=solid-tester-grader']).toString().trim(), { timeout: 5000 })
-    .toBe('')
+  // only containers started by this test; others may run concurrently
+  await expect.poll(() => graders().filter(id => !before.has(id)), { timeout: 5000 }).toEqual([])
 })
 
 test('go allowed functions are shown in the question header', async ({ page }) => {
@@ -186,4 +182,94 @@ test('go allowed functions are shown in the question header', async ({ page }) =
   await openExercise(page, /^Go/, 'gcd')
   await expect(builtins).toBeVisible()
   await expect(page.getByText('github.com/')).toHaveCount(0)
+})
+
+test('js sidebar: checkpoint 3 mission 5 lists the deep-* exercises', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /^JavaScript/ }).click()
+  await page.getByRole('button', { name: /^Checkpoint 3/ }).click()
+  await page.getByRole('button', { name: /^Mission 5/ }).click()
+  await expect(page.getByRole('button', { name: 'js-deep-clone', exact: true })).toBeVisible({ timeout: 60_000 })
+})
+
+test('progress is shared across checkpoints by exercise name', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+  await openExercise(page, /^JavaScript/, 'js-factorial') // first copy lives in Checkpoint 1
+  await setValue(page, fixture('factorial.js'))
+  await page.getByRole('button', { name: 'Test', exact: true }).click()
+  await expect(page.getByText('Mission Clear', { exact: true })).toBeVisible({ timeout: 150_000 })
+  await page.getByRole('button', { name: /^Checkpoint 1/ }).click() // collapse it
+  await page.getByRole('button', { name: /^Checkpoint 2/ }).click()
+  await page.getByRole('button', { name: /^Mission 1/ }).click()
+  await expect(page.getByRole('button', { name: /^js-factorial\s*(SSS|SS|S|A|B|C|D|✓)$/ })).toHaveCount(1)
+})
+
+test('bloody palace asks for a checkpoint and starts that exam', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /^JavaScript/ }).click()
+  await expect(page.getByRole('button', { name: /^Checkpoint 1/ })).toBeVisible({ timeout: 60_000 })
+  await page.getByRole('button', { name: 'Bloody Palace' }).click()
+  await expect(page.getByRole('dialog', { name: /choose a checkpoint/ })).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'Checkpoint final' }).click()
+  await expect(page.getByText('Bloody Palace · Checkpoint final')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Mission \d+/ })).toHaveCount(7)
+})
+
+async function startPalace(page, lang, checkpoint) {
+  await page.goto('/')
+  await page.getByRole('button', { name: lang }).click()
+  await expect(page.getByRole('button', { name: /^Checkpoint 1/ })).toBeVisible({ timeout: 60_000 })
+  await page.getByRole('button', { name: 'Bloody Palace' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: checkpoint }).click()
+  await expect(page.getByText(`Bloody Palace · ${checkpoint}`)).toBeVisible()
+  await page.getByRole('button', { name: /^Mission 1/ }).click()
+  await page.waitForSelector('.monaco-editor')
+  return (await page.locator('h1').innerText()).trim()
+}
+
+test('bloody palace time-up replaces the exam with the ended screen', async ({ page }) => {
+  await page.clock.install()
+  await page.goto('/')
+  await page.getByRole('button', { name: /^JavaScript/ }).click()
+  await expect(page.getByRole('button', { name: /^Checkpoint 1/ })).toBeVisible({ timeout: 60_000 })
+  await page.getByRole('button', { name: 'Bloody Palace' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Checkpoint 1' }).click()
+  await expect(page.getByText('Bloody Palace · Checkpoint 1')).toBeVisible()
+  await page.waitForSelector('.monaco-editor')
+  await expect(page.getByText(/⏱ 0[23]:\d\d:\d\d/)).toBeVisible()
+
+  await page.clock.runFor('03:00:05')
+  await expect(page.getByText('Time is Up', { exact: true })).toBeVisible()
+  await expect(page.getByText('Your Bloody Palace run has ended')).toBeVisible()
+  await expect(page.locator('.monaco-editor')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Run', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Test', exact: true })).toHaveCount(0)
+})
+
+test('bloody palace go: mission 1 program exercise passes and runs', async ({ page }) => {
+  const name = await startPalace(page, /^Go/, 'Checkpoint 1')
+  const ch = name.match(/^only(.)$/)?.[1]
+  test.skip(!ch, `mission 1 is ${name}, not an only* exercise`)
+  await setValue(page, `package main\n\nimport "github.com/01-edu/z01"\n\nfunc main() {\n\tz01.PrintRune('${ch}')\n}\n`)
+  await page.getByRole('button', { name: 'Run', exact: true }).click()
+  await expect(page.getByTestId('output-panel').locator('pre')).toHaveText(ch, { timeout: 150_000 })
+  await page.getByRole('button', { name: 'Test', exact: true }).click()
+  await expect(page.getByText('Mission Clear', { exact: true })).toBeVisible({ timeout: 150_000 })
+})
+
+test('bloody palace rust: mission 1 grades and runs', async ({ page }) => {
+  const name = await startPalace(page, /^Rust/, 'Checkpoint 1')
+  await expect(page.getByRole('button', { name: /usage/ })).toBeVisible({ timeout: 30_000 })
+  if (name === 'min_and_max') {
+    await setValue(page, fixture('min_and_max.rs'))
+    await page.getByRole('button', { name: 'Test', exact: true }).click()
+    await expect(page.getByText('Mission Clear', { exact: true })).toBeVisible({ timeout: 300_000 })
+  } else {
+    await page.getByRole('button', { name: 'Test', exact: true }).click()
+    await expect(page.getByText('Mission Failed', { exact: true })).toBeVisible({ timeout: 300_000 })
+  }
+  await page.getByRole('button', { name: 'Run', exact: true }).click()
+  await expect(page.getByTestId('output-panel').locator('pre')).toBeVisible({ timeout: 300_000 })
 })

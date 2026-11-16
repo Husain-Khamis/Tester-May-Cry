@@ -80,11 +80,11 @@ function QuestionView({ question, lang }) {
     }
   }
 
-  const runCode = () => exec(async (signal) => setOutput((await runAny(lang, question.name, code, main, signal)).output))
+  const runCode = () => exec(async (signal) => setOutput((await runAny(lang, question.path, code, main, signal)).output))
 
   const runTests = () =>
     exec(async (signal) => {
-      const data = await testCode(lang, question.name, code, signal)
+      const data = await testCode(lang, question.path, code, signal)
       if (!data.stopped) setResult(data)
       if (!data.stopped) setRank(recordTest(lang, question.name, data.passed))
       setOutput(data.output || (data.passed ? 'All tests passed' : 'No output'))

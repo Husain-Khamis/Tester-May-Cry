@@ -88,11 +88,11 @@ function MockExam({ questions, lang }) {
   }
 
   const runCode = () =>
-    exec(async (i, setOut, signal) => setOut((await runAny(lang, activeQuestion.name, code, main, signal)).output))
+    exec(async (i, setOut, signal) => setOut((await runAny(lang, activeQuestion.path, code, main, signal)).output))
 
   const runTests = () =>
     exec(async (i, setOut, signal) => {
-      const data = await testCode(lang, activeQuestion.name, code, signal)
+      const data = await testCode(lang, activeQuestion.path, code, signal)
       if (!data.stopped) setResults((prev) => ({ ...prev, [i]: data }))
       setOut(data.output || (data.passed ? 'All tests passed' : 'No output'))
     })
@@ -110,7 +110,7 @@ function MockExam({ questions, lang }) {
     <div className="flex flex-col flex-1 overflow-hidden">
       <LongRunDialog startedAt={run.startedAt} onStop={run.stop} onKeep={run.keepWaiting} />
       <div className="bg-stone border-b border-brass/40 px-4 py-2 flex items-center gap-3">
-        <span className="font-display text-2xl text-brass mr-2">Bloody Palace</span>
+        <span className="font-display text-2xl text-brass mr-2">Bloody Palace · {questions[0]?.question.checkpointLabel}</span>
 
         <div className="flex gap-2 flex-1 flex-wrap">
           {questions.map((item, index) => (
